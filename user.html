@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>心理树洞 - 用户端</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="data.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>心理树洞 - 提交你的问题</h2>
+        <form id="questionForm">
+            <label>问题内容：</label><br>
+            <textarea name="content" required rows="4" cols="40"></textarea><br><br>
+            <label>是否匿名：</label>
+            <input type="radio" name="anonymous" value="yes" checked> 匿名
+            <input type="radio" name="anonymous" value="no"> 实名<br>
+            <div id="realInfo" style="display:none;">
+                <label>姓名：</label>
+                <input type="text" name="name"><br>
+                <label>学号后四位：</label>
+                <input type="text" name="id4" maxlength="4"><br>
+            </div>
+            <label>是否上报：</label>
+            <input type="checkbox" name="report"> 上报班导/辅导员/心理健康协会<br><br>
+            <button type="submit">提交</button>
+        </form>
+        <div id="successMsg" style="display:none;color:green;">提交成功！</div>
+    </div>
+    <div class="container">
+        <h3>已回答的问题</h3>
+        <div id="answeredQuestions"></div>
+    </div>
+    <script>
+        // 匿名与实名切换
+        document.querySelectorAll('input[name="anonymous"]').forEach(el => {
+            el.addEventListener('change', function() {
+                document.getElementById('realInfo').style.display = this.value === 'no' ? 'block' : 'none';
+            });
+        });
+
+        // 提交表单
+        document.getElementById('questionForm').onsubmit = function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const anonymous = form.anonymous.value === 'yes';
+            const question = {
+                content: form.content.value,
+                anonymous,
+                name: anonymous ? '' : form.name.value,
+                id4: anonymous ? '' : form.id4.value,
+                report: !!form.report.checked,
+                createdAt: new Date().toISOString(),
+                answer: null
+            };
+            addQuestion(question);
+            form.reset();
+            document.getElementById('realInfo').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'block';
+            setTimeout(() => document.getElementById('successMsg').style.display = 'none', 2000);
+        };
+
+        // 时间格式化函数
+        function formatTime(isoStr) {
+            if (!isoStr) return '';
+            const d = new Date(isoStr);
+            const pad = n => n < 10 ? '0' + n : n;
+            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        }
+
+        function renderAnsweredQuestions() {
+            const list = getQuestions();
+            const container = document.getElementById('answeredQuestions');
+            container.innerHTML = '';
+            const answered = list.filter(q => q.answer);
+            if (answered.length === 0) {
+                container.innerHTML = '<p>暂无已回答的问题。</p>';
+                return;
+            }
+            answered.forEach(q => {
+                const info = q.anonymous ? '匿名' : `姓名：${q.name} 学号后四位：${q.id4}`;
+                const report = q.report ? '已选择上报' : '未选择上报';
+                container.innerHTML += `
+                    <div class="question-block">
+                        <div><strong>问题：</strong>${q.content}</div>
+                        <div style="margin:6px 0 0 0;"><small>${info} | ${report} | 提交时间：${formatTime(q.createdAt)}</small></div>
+                        <div class="answer"><strong>回答：</strong>${q.answer}<br><small>回答时间：${formatTime(q.answeredAt)}</small></div>
+                    </div>
+                `;
+            });
+        }
+        renderAnsweredQuestions();
+    </script>
+</body>
+</html>
