@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>心理树洞 - 用户端</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://code.bdstatic.com/npm/leancloud-storage@4.13.2/dist/av-min.js"></script>
     <script src="data.js"></script>
 </head>
 <body>
@@ -40,7 +41,7 @@
         });
 
         // 提交表单
-        document.getElementById('questionForm').onsubmit = function(e) {
+        document.getElementById('questionForm').onsubmit = async function(e) {
             e.preventDefault();
             const form = e.target;
             const anonymous = form.anonymous.value === 'yes';
@@ -53,11 +54,12 @@
                 createdAt: new Date().toISOString(),
                 answer: null
             };
-            addQuestion(question);
+            await addQuestion(question);
             form.reset();
             document.getElementById('realInfo').style.display = 'none';
             document.getElementById('successMsg').style.display = 'block';
             setTimeout(() => document.getElementById('successMsg').style.display = 'none', 2000);
+            renderAnsweredQuestions();
         };
 
         // 时间格式化函数
@@ -68,8 +70,8 @@
             return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
         }
 
-        function renderAnsweredQuestions() {
-            const list = getQuestions();
+        async function renderAnsweredQuestions() {
+            const list = await getQuestions();
             const container = document.getElementById('answeredQuestions');
             container.innerHTML = '';
             const answered = list.filter(q => q.answer);
@@ -92,4 +94,5 @@
         renderAnsweredQuestions();
     </script>
 </body>
+</html>
 </html>

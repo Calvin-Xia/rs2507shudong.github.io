@@ -10,8 +10,8 @@
         <h2>页面已迁移</h2>
         <p>请访问 <a href="index.html">主页</a> 使用心理树洞用户端功能。</p>
     </div>
-</body>
-</html>
+    <div class="container">
+        <form id="questionForm">
             <label>是否匿名：</label>
             <input type="radio" name="anonymous" value="yes" checked> 匿名
             <input type="radio" name="anonymous" value="no"> 实名<br>
@@ -31,6 +31,8 @@
         <h3>已回答的问题</h3>
         <div id="answeredQuestions"></div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage/dist/av-min.js"></script>
+    <script src="data.js"></script>
     <script>
         // 匿名与实名切换
         document.querySelectorAll('input[name="anonymous"]').forEach(el => {
@@ -40,7 +42,7 @@
         });
 
         // 提交表单
-        document.getElementById('questionForm').onsubmit = function(e) {
+        document.getElementById('questionForm').onsubmit = async function(e) {
             e.preventDefault();
             const form = e.target;
             const anonymous = form.anonymous.value === 'yes';
@@ -53,11 +55,12 @@
                 createdAt: new Date().toISOString(),
                 answer: null
             };
-            addQuestion(question);
+            await addQuestion(question);
             form.reset();
             document.getElementById('realInfo').style.display = 'none';
             document.getElementById('successMsg').style.display = 'block';
             setTimeout(() => document.getElementById('successMsg').style.display = 'none', 2000);
+            renderAnsweredQuestions();
         };
 
         // 时间格式化函数
@@ -68,8 +71,8 @@
             return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
         }
 
-        function renderAnsweredQuestions() {
-            const list = getQuestions();
+        async function renderAnsweredQuestions() {
+            const list = await getQuestions();
             const container = document.getElementById('answeredQuestions');
             container.innerHTML = '';
             const answered = list.filter(q => q.answer);
@@ -92,4 +95,5 @@
         renderAnsweredQuestions();
     </script>
 </body>
+</html>
 </html>

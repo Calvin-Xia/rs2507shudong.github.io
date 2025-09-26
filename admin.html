@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>心理树洞 - 管理员端</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://code.bdstatic.com/npm/leancloud-storage@4.13.2/dist/av-min.js"></script>
     <script src="data.js"></script>
     <style>
         /* 优化布局 */
@@ -43,8 +44,8 @@
             return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
         }
 
-        function renderQuestions() {
-            const list = getQuestions();
+        async function renderQuestions() {
+            const list = await getQuestions();
             const container = document.getElementById('questions');
             container.innerHTML = '';
             if (list.length === 0) {
@@ -61,10 +62,11 @@
                         <button type="submit" style="margin-top:6px;">提交回答</button>
                     </form>`;
                 container.innerHTML += `
-                    <div class="question-block">
+                    <div class="question-block" id="questionBlock${q.objectId}">
                         <div><strong>问题：</strong>${q.content}</div>
                         <div style="margin:6px 0 0 0;"><small>${info} | ${report} | 提交时间：${formatTime(q.createdAt)}</small></div>
                         ${answerHtml}
+                        <button class="delete-btn" data-id="${q.objectId}" style="margin-top:8px;background:#e53935;">删除</button>
                     </div>
                 `;
             });
@@ -73,29 +75,28 @@
                 if (!q.answer) {
                     const form = document.getElementById(`answerForm${idx}`);
                     if (form) {
-                        form.onsubmit = function(e) {
+                        form.onsubmit = async function(e) {
                             e.preventDefault();
                             const ans = form.answer.value;
-                            answer(idx, ans);
+                            await answerQuestion(q.objectId, ans);
+                            renderQuestions();
                         };
                     }
                 }
             });
-        }
-        function answer(idx, ans) {
-            // 获取当前时间戳
-            const now = new Date();
-            const isoStr = now.toISOString();
-            // 修改 data.js 的 answerQuestion 方法调用方式，传入时间戳
-            const questions = getQuestions();
-            if (questions[idx]) {
-                questions[idx].answer = ans;
-                questions[idx].answeredAt = isoStr;
-                localStorage.setItem('questions', JSON.stringify(questions));
-            }
-            renderQuestions();
+            // 绑定删除按钮事件
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.onclick = async function() {
+                    if (confirm('确定要删除此问题吗？')) {
+                        await deleteQuestion(btn.dataset.id);
+                        renderQuestions();
+                    }
+                };
+            });
         }
         renderQuestions();
     </script>
 </body>
+</html>
+</html>
 </html>
